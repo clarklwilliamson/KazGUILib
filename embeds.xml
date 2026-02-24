@@ -1,0 +1,11 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/">
+    <Script file="Core.lua"/>
+    <Script file="Widgets/Frame.lua"/>
+    <Script file="Widgets/Button.lua"/>
+    <Script file="Widgets/Checkbox.lua"/>
+    <Script file="Widgets/Dropdown.lua"/>
+    <Script file="Widgets/ScrollFrame.lua"/>
+    <Script file="Widgets/ResizeGrip.lua"/>
+    <Script file="Widgets/EditBox.lua"/>
+    <Script file="Widgets/Row.lua"/>
+</Ui>
