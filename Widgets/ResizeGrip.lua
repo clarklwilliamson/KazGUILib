@@ -60,7 +60,7 @@ function KazGUI:CreateResizeGrip(parent, options)
 
     grip:SetScript("OnMouseUp", function()
         parent:StopMovingOrSizing()
-        if options.onResize then options.onResize() end
+        if options.onResize then options.onResize(parent) end
     end)
 
     -- Methods to update content constraints
