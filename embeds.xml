@@ -8,4 +8,6 @@
     <Script file="Widgets/ResizeGrip.lua"/>
     <Script file="Widgets/EditBox.lua"/>
     <Script file="Widgets/Row.lua"/>
+    <Script file="Widgets/TabBar.lua"/>
+    <Script file="Widgets/ListRow.lua"/>
 </Ui>

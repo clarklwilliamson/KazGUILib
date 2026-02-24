@@ -1,4 +1,4 @@
-local MAJOR, MINOR = "KazGUILib-1.0", 1
+local MAJOR, MINOR = "KazGUILib-1.0", 2
 local KazGUI = LibStub:NewLibrary(MAJOR, MINOR)
 if not KazGUI then return end
 
@@ -13,6 +13,8 @@ KazGUI.Colors = {
     bg              = {18/255, 18/255, 18/255, 0.94},
     bgSolid         = {18/255, 18/255, 18/255, 1},
     headerBg        = {30/255, 28/255, 25/255, 1},
+    panelBg         = {12/255, 12/255, 12/255, 0.5},
+    footerBg        = {10/255, 10/255, 10/255, 0.6},
 
     -- Borders
     border          = {70/255, 65/255, 55/255, 1},
@@ -26,11 +28,12 @@ KazGUI.Colors = {
     textNormal      = {220/255, 215/255, 200/255, 1},
     textDim         = {150/255, 140/255, 120/255, 1},
     textHeader      = {130/255, 125/255, 115/255, 1},
+    textMuted       = {180/255, 180/255, 180/255, 1},
 
     -- Status
-    green           = {100/255, 200/255, 100/255, 1},
-    red             = {200/255, 100/255, 100/255, 1},
-    gold            = {255/255, 200/255, 50/255, 1},
+    green           = {0.3, 0.9, 0.3, 1},
+    red             = {0.9, 0.3, 0.3, 1},
+    gold            = {1, 0.82, 0, 1},
     gray            = {128/255, 128/255, 128/255, 1},
 
     -- Buttons
@@ -41,6 +44,9 @@ KazGUI.Colors = {
     -- Controls
     ctrlText        = {150/255, 140/255, 120/255, 1},
     ctrlHover       = {220/255, 200/255, 160/255, 1},
+    tabInactive     = {160/255, 150/255, 130/255, 1},
+    searchBg        = {10/255, 10/255, 10/255, 0.6},
+    searchFocus     = {120/255, 105/255, 80/255, 1},
 
     -- Checkbox
     checkOff        = {25/255, 23/255, 20/255, 1},
@@ -58,7 +64,8 @@ KazGUI.Colors = {
     rowOdd          = {0, 0, 0, 0},
     rowEven         = {255/255, 255/255, 255/255, 0.03},
     rowHover        = {255/255, 220/255, 150/255, 0.08},
-    rowSelected     = {200/255, 170/255, 100/255, 0.15},
+    rowSelected     = {200/255, 170/255, 100/255, 0.12},
+    rowDivider      = {70/255, 65/255, 55/255, 0.5},
     zoneBg          = {255/255, 255/255, 255/255, 0.03},
 
     -- Scrollbar
@@ -80,6 +87,9 @@ KazGUI.Constants = {
     ROW_HEIGHT      = 22,
     BUTTON_HEIGHT   = 20,
     SCROLLBAR_WIDTH = 6,
+    ROW_HEIGHT_LARGE= 26,
+    ICON_SIZE       = 20,
+    TAB_BAR_HEIGHT  = 28,
 
     SHADOW_OFFSET   = 2,
     SHADOW_EXTEND   = 4,
@@ -129,4 +139,71 @@ function KazGUI:CreateText(parent, size, colorKey)
     text:SetFont(self.Constants.FONT, size, "")
     text:SetTextColor(unpack(self.Colors[colorKey]))
     return text
+end
+
+--------------------------------------------------------------------------------
+-- Utility: Format copper value as gold string
+--------------------------------------------------------------------------------
+function KazGUI:FormatGold(copper)
+    if not copper or copper == 0 then return "—" end
+    local gold = math.floor(copper / 10000)
+    local silver = math.floor((copper % 10000) / 100)
+    if gold > 0 then
+        return string.format("%s|cffffd700g|r %02d|cffc7c7cfs|r", BreakUpLargeNumbers(gold), silver)
+    elseif silver > 0 then
+        return string.format("%d|cffc7c7cfs|r %02d|cffeda55fc|r", silver, copper % 100)
+    else
+        return string.format("%d|cffeda55fc|r", copper % 100)
+    end
+end
+
+--------------------------------------------------------------------------------
+-- Utility: Crafting quality helpers
+--------------------------------------------------------------------------------
+function KazGUI:GetCraftingQuality(itemID)
+    if not itemID then return nil end
+    if C_TradeSkillUI and C_TradeSkillUI.GetItemReagentQualityByItemInfo then
+        return C_TradeSkillUI.GetItemReagentQualityByItemInfo(itemID)
+    end
+    return nil
+end
+
+function KazGUI:GetQualityAtlas(tier)
+    if not tier or tier < 1 or tier > 5 then return nil end
+    return "Professions-Icon-Quality-Tier" .. tier .. "-Small"
+end
+
+--------------------------------------------------------------------------------
+-- /kaz Dispatcher — Unified Slash Command Router
+--------------------------------------------------------------------------------
+KAZ_COMMANDS = {}
+
+SLASH_KAZ1 = "/kaz"
+SlashCmdList["KAZ"] = function(msg)
+    msg = (msg or ""):trim()
+    local cmd, rest = msg:match("^(%S+)%s*(.*)$")
+
+    if not cmd then
+        -- No args: list all registered commands
+        local sorted = {}
+        for name, entry in pairs(KAZ_COMMANDS) do
+            table.insert(sorted, {name = name, alias = entry.alias, desc = entry.desc})
+        end
+        table.sort(sorted, function(a, b) return a.name < b.name end)
+
+        print("|cffc8aa64Kaz:|r Commands:")
+        for _, entry in ipairs(sorted) do
+            local alias = entry.alias and ("(" .. entry.alias .. ")") or ""
+            print(string.format("  /kaz %-12s %-12s %s", entry.name, alias, entry.desc or ""))
+        end
+        return
+    end
+
+    cmd = cmd:lower()
+    local entry = KAZ_COMMANDS[cmd]
+    if entry and entry.handler then
+        entry.handler(rest)
+    else
+        print("|cffc8aa64Kaz:|r Unknown command: " .. cmd)
+    end
 end
