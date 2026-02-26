@@ -174,6 +174,86 @@ function KazGUI:GetQualityAtlas(tier)
 end
 
 --------------------------------------------------------------------------------
+-- Utility: Create close button (top-right "x")
+--------------------------------------------------------------------------------
+function KazGUI:CreateCloseButton(parent)
+    local btn = CreateFrame("Button", nil, parent)
+    btn:SetSize(20, 20)
+    btn:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -4, -4)
+    btn.label = btn:CreateFontString(nil, "OVERLAY")
+    btn.label:SetFont(self.Constants.FONT, 14, "")
+    btn.label:SetPoint("CENTER")
+    btn.label:SetText("x")
+    btn.label:SetTextColor(unpack(self.Colors.closeNormal))
+
+    btn:SetScript("OnEnter", function(self)
+        self.label:SetTextColor(unpack(KazGUI.Colors.closeHover))
+    end)
+    btn:SetScript("OnLeave", function(self)
+        self.label:SetTextColor(unpack(KazGUI.Colors.closeNormal))
+    end)
+    btn:SetScript("OnClick", function()
+        parent:Hide()
+    end)
+
+    return btn
+end
+
+--------------------------------------------------------------------------------
+-- Utility: Smooth alpha fade
+--------------------------------------------------------------------------------
+function KazGUI:FadeFrame(frame, targetAlpha, duration)
+    if not frame then return end
+    duration = duration or 0.2
+    if targetAlpha > 0 then frame:Show() end
+    local startAlpha = frame:GetAlpha()
+    if math.abs(startAlpha - targetAlpha) < 0.01 then
+        frame:SetAlpha(targetAlpha)
+        if targetAlpha == 0 then frame:Hide() end
+        return
+    end
+    local startTime = GetTime()
+    if frame._fadeTicker then frame._fadeTicker:Cancel() end
+    frame._fadeTicker = C_Timer.NewTicker(0.016, function(ticker)
+        local elapsed = GetTime() - startTime
+        local pct = math.min(1, elapsed / duration)
+        frame:SetAlpha(startAlpha + (targetAlpha - startAlpha) * pct)
+        if pct >= 1 then
+            ticker:Cancel()
+            frame._fadeTicker = nil
+            if targetAlpha == 0 then frame:Hide() end
+        end
+    end)
+end
+
+--------------------------------------------------------------------------------
+-- Utility: Classic scroll frame (UIPanelScrollFrameTemplate wrapper)
+--------------------------------------------------------------------------------
+function KazGUI:CreateClassicScrollFrame(parent, topOffset, bottomOffset)
+    topOffset = topOffset or 0
+    bottomOffset = bottomOffset or 0
+
+    local scrollFrame = CreateFrame("ScrollFrame", nil, parent, "UIPanelScrollFrameTemplate")
+    scrollFrame:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, -topOffset)
+    scrollFrame:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", -20, bottomOffset)
+
+    local content = CreateFrame("Frame", nil, scrollFrame)
+    content:SetWidth(scrollFrame:GetWidth())
+    content:SetHeight(1)
+    scrollFrame:SetScrollChild(content)
+
+    local scrollBar = scrollFrame.ScrollBar
+    if scrollBar then
+        scrollBar:ClearAllPoints()
+        scrollBar:SetPoint("TOPLEFT", scrollFrame, "TOPRIGHT", 2, -16)
+        scrollBar:SetPoint("BOTTOMLEFT", scrollFrame, "BOTTOMRIGHT", 2, 16)
+    end
+
+    scrollFrame.content = content
+    return scrollFrame
+end
+
+--------------------------------------------------------------------------------
 -- /kaz Dispatcher — Unified Slash Command Router
 --------------------------------------------------------------------------------
 KAZ_COMMANDS = {}

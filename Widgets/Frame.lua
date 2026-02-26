@@ -3,7 +3,7 @@ local KazGUI = LibStub("KazGUILib-1.0")
 function KazGUI:CreateFrame(name, width, height, options)
     options = options or {}
 
-    local f = CreateFrame("Frame", name, UIParent, "BackdropTemplate")
+    local f = CreateFrame("Frame", name, options.parent or UIParent, "BackdropTemplate")
     f:SetSize(width, height)
     f:SetPoint("CENTER")
     f:SetMovable(true)
@@ -12,18 +12,21 @@ function KazGUI:CreateFrame(name, width, height, options)
     f:SetFrameStrata(options.strata or "DIALOG")
     f:SetClampedToScreen(true)
 
-    self:ApplyBackdrop(f)
-    self:AddShadow(f)
+    self:ApplyBackdrop(f, options.bgColor, options.borderColor)
+    if options.shadow ~= false then
+        self:AddShadow(f)
+    end
 
     -- Drag handlers with position saving
     f:SetScript("OnDragStart", f.StartMoving)
     f:SetScript("OnDragStop", function(self)
         self:StopMovingOrSizing()
+        if self.SavePosition then self:SavePosition() end
         if f._savePosition then f._savePosition() end
     end)
 
-    -- ESC to close
-    if name then
+    -- ESC to close (opt out with escClose = false)
+    if name and options.escClose ~= false then
         table.insert(UISpecialFrames, name)
     end
 
