@@ -267,13 +267,17 @@ SlashCmdList["KAZ"] = function(msg)
         -- No args: list all registered commands
         local sorted = {}
         for name, entry in pairs(KAZ_COMMANDS) do
-            table.insert(sorted, {name = name, alias = entry.alias, desc = entry.desc})
+            if type(entry) == "function" then
+                table.insert(sorted, {name = name, alias = "", desc = ""})
+            else
+                table.insert(sorted, {name = name, alias = entry.alias, desc = entry.desc})
+            end
         end
         table.sort(sorted, function(a, b) return a.name < b.name end)
 
         print("|cffc8aa64Kaz:|r Commands:")
         for _, entry in ipairs(sorted) do
-            local alias = entry.alias and ("(" .. entry.alias .. ")") or ""
+            local alias = entry.alias and entry.alias ~= "" and ("(" .. entry.alias .. ")") or ""
             print(string.format("  /kaz %-12s %-12s %s", entry.name, alias, entry.desc or ""))
         end
         return
@@ -281,7 +285,9 @@ SlashCmdList["KAZ"] = function(msg)
 
     cmd = cmd:lower()
     local entry = KAZ_COMMANDS[cmd]
-    if entry and entry.handler then
+    if type(entry) == "function" then
+        entry(rest)
+    elseif entry and entry.handler then
         entry.handler(rest)
     else
         print("|cffc8aa64Kaz:|r Unknown command: " .. cmd)
