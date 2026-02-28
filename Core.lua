@@ -168,9 +168,22 @@ function KazGUI:GetCraftingQuality(itemID)
     return nil
 end
 
-function KazGUI:GetQualityAtlas(tier)
+function KazGUI:GetQualityAtlas(tier, recipeID)
     if not tier or tier < 1 or tier > 5 then return nil end
+    -- 12.0+: quality pip atlases come from C engine via API
+    if recipeID and C_TradeSkillUI.GetRecipeItemQualityInfo then
+        local info = C_TradeSkillUI.GetRecipeItemQualityInfo(recipeID, tier)
+        if info and info.iconSmall then return info.iconSmall end
+    end
+    -- Fallback for pre-12.0 or if API returns nil
     return "Professions-Icon-Quality-Tier" .. tier .. "-Small"
+end
+
+function KazGUI:GetQualityMarkup(tier, recipeID, size)
+    local atlas = self:GetQualityAtlas(tier, recipeID)
+    if not atlas then return "" end
+    local s = size or 0
+    return "|A:" .. atlas .. ":" .. s .. ":" .. s .. "|a"
 end
 
 --------------------------------------------------------------------------------
