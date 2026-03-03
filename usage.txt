@@ -1,0 +1,26 @@
+KazGUILib - Shared UI library for all Kaz addons
+
+Provides the visual style and widget toolkit used by all Kaz addons.
+Not used directly by players.
+
+Widgets:
+  KazGUI:CreateFrame       Styled frame with backdrop, close button, drag
+  KazGUI:CreateButton       Bronze-styled button
+  KazGUI:CreateCheckbox     Checkbox with label
+  KazGUI:CreateDropdown     Dropdown menu
+  KazGUI:CreateEditBox      Styled text input
+  KazGUI:CreateScrollFrame  Scrollable container with thin scrollbar
+  KazGUI:CreateRow          Alternating-stripe row
+  KazGUI:CreateResizeGrip   Draggable resize handle
+
+Utilities:
+  KazGUI:ApplyBackdrop      Apply standard dark backdrop to any frame
+  KazGUI:AddShadow          Add shadow border
+  KazGUI:CreateText          Create font string
+  KazGUI:GetCraftingQuality  Item quality tier (1-5)
+  KazGUI:GetQualityAtlas     Quality pip atlas for tier
+  KazGUI.Colors              Color palette (source of truth)
+  KazGUI.Constants           Font, sizes, spacing
+
+Commands:
+  /kaz                List all registered Kaz commands (dispatcher lives here)
