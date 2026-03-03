@@ -24,3 +24,5 @@ Utilities:
 
 Commands:
   /kaz                List all registered Kaz commands (dispatcher lives here)
+
+Full API docs: kazeric/docs/KazGUILib_USAGE.md
