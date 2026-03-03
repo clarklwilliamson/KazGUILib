@@ -168,11 +168,16 @@ function KazGUI:GetCraftingQuality(itemID)
     return nil
 end
 
-function KazGUI:GetQualityAtlas(tier, recipeID)
+function KazGUI:GetQualityAtlas(tier, recipeID, itemID)
     if not tier or tier < 1 or tier > 5 then return nil end
     -- 12.0+: quality pip atlases come from C engine via API
     if recipeID and C_TradeSkillUI.GetRecipeItemQualityInfo then
         local info = C_TradeSkillUI.GetRecipeItemQualityInfo(recipeID, tier)
+        if info and info.iconSmall then return info.iconSmall end
+    end
+    -- Item-based lookup (AH listings have itemID but no recipeID)
+    if itemID and C_TradeSkillUI.GetItemReagentQualityInfo then
+        local info = C_TradeSkillUI.GetItemReagentQualityInfo(itemID)
         if info and info.iconSmall then return info.iconSmall end
     end
     -- Fallback for pre-12.0 or if API returns nil
