@@ -10,7 +10,8 @@ function KazGUI:CreateFrame(name, width, height, options)
     f:EnableMouse(true)
     f:RegisterForDrag("LeftButton")
     f:SetFrameStrata(options.strata or "DIALOG")
-    f:SetClampedToScreen(true)
+    f:SetClampedToScreen(false)
+    f:SetToplevel(true)
 
     self:ApplyBackdrop(f, options.bgColor, options.borderColor)
     if options.shadow ~= false then
