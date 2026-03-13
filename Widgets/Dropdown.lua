@@ -13,7 +13,17 @@ function KazGUI:CreateDropdown(parent, width, options, default, onChange)
     local function CreateMenu()
         local menu = CreateFrame("Frame", nil, btn, "BackdropTemplate")
         menu:SetPoint("TOPLEFT", btn, "BOTTOMLEFT", 0, -2)
-        menu:SetWidth(btn:GetWidth())
+        -- Auto-size to widest option (minimum = button width)
+        local menuWidth = btn:GetWidth()
+        local tempFS = menu:CreateFontString(nil, "OVERLAY")
+        tempFS:SetFont(KazGUI.Constants.FONT, KazGUI.Constants.FONT_SIZE_NORMAL, "")
+        for _, opt in ipairs(btn.options) do
+            tempFS:SetText(opt)
+            local w = tempFS:GetUnboundedStringWidth() + 16  -- 8px padding each side
+            if w > menuWidth then menuWidth = w end
+        end
+        tempFS:Hide()
+        menu:SetWidth(menuWidth)
         menu:SetFrameStrata("FULLSCREEN_DIALOG")
         KazGUI:ApplyBackdrop(menu)
 

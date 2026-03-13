@@ -1,9 +1,10 @@
 ## Interface: 120001
 ## Category-enUS: Kaz
-## Title: KazGUILib
+## Title: |cff00c0ffKaz|r GUI Lib
 ## Notes: Shared UI library for Kaz addons
 ## Author: Kaz (Claude Code) & Logan
 ## Version: 1.0
+## Group: Kaz
 ## X-Category: Libraries
 
 embeds.xml
