@@ -51,6 +51,125 @@ function KazGUI:CreateFrame(name, width, height, options)
         })
     end
 
+    -- Window shade (double-click title bar to collapse/restore)
+    if options.shadeable ~= false and options.title then
+        f._shaded = false
+        f._unshadedHeight = height
+        f._shadedChildren = {}  -- track hidden children by reference
+
+        local function ShadeLog(...)
+            if KazUtil and KazUtil.DebugLog then
+                KazUtil.DebugLog("KazGUILib", ...)
+            end
+        end
+
+        function f:Shade()
+            if f._shaded then
+                ShadeLog("Shade: already shaded, skipping")
+                return
+            end
+            f._unshadedHeight = f:GetHeight()
+            f._shaded = true
+            ShadeLog("Shade: saving height:", f._unshadedHeight)
+
+            -- Pin the title bar position: re-anchor from TOPLEFT so collapsing
+            -- shrinks from the bottom (title bar stays put)
+            local top = f:GetTop()
+            local left = f:GetLeft()
+            if top and left then
+                f._shadeAnchor = {f:GetPoint()}
+                f:ClearAllPoints()
+                f:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", left, top)
+                ShadeLog("Shade: pinned TOPLEFT at", left, top)
+            end
+
+            -- Hide all children except title bar + shadow
+            wipe(f._shadedChildren)
+            local children = {f:GetChildren()}
+            ShadeLog("Shade: frame has", #children, "children")
+            for _, child in ipairs(children) do
+                if child ~= f.titleBar and child ~= f._shadow and child:IsShown() then
+                    f._shadedChildren[child] = true
+                    child:Hide()
+                    ShadeLog("Shade: hiding child:", child:GetName() or child:GetObjectType())
+                end
+            end
+
+            local titleH = KazGUI.Constants.TITLE_HEIGHT + 2
+            f:SetHeight(titleH)
+            if f:IsResizable() then f:SetResizable(false) end
+            if f.grip then f.grip:Hide() end
+            if f.titleBar and f.titleBar._shadeIndicator then
+                f.titleBar._shadeIndicator:SetText("+")
+            end
+            ShadeLog("Shade: done, height now:", f:GetHeight())
+        end
+
+        function f:Unshade()
+            if not f._shaded then
+                ShadeLog("Unshade: not shaded, skipping")
+                return
+            end
+            ShadeLog("Unshade: restoring height:", f._unshadedHeight)
+            f._shaded = false
+            f:SetHeight(f._unshadedHeight)
+            if options.resizable then f:SetResizable(true) end
+            if f.grip then f.grip:Show() end
+
+            -- Restore children
+            local restored = 0
+            for child in pairs(f._shadedChildren) do
+                child:Show()
+                restored = restored + 1
+            end
+            wipe(f._shadedChildren)
+            ShadeLog("Unshade: restored", restored, "children, height now:", f:GetHeight())
+
+            if f.titleBar and f.titleBar._shadeIndicator then
+                f.titleBar._shadeIndicator:SetText("-")
+            end
+        end
+
+        function f:ToggleShade()
+            ShadeLog("ToggleShade: current state:", f._shaded and "shaded" or "unshaded")
+            if f._shaded then f:Unshade() else f:Shade() end
+        end
+
+        function f:IsShaded()
+            return f._shaded
+        end
+
+        -- Shade button on title bar (left of close)
+        local shadeBtn = CreateFrame("Button", nil, f.titleBar)
+        shadeBtn:SetSize(KazGUI.Constants.TITLE_HEIGHT, KazGUI.Constants.TITLE_HEIGHT)
+        shadeBtn:SetPoint("RIGHT", f.titleBar.closeBtn, "LEFT", 0, 0)
+
+        local shadeTxt = KazGUI:CreateText(shadeBtn, KazGUI.Constants.FONT_SIZE_TITLE, "ctrlText")
+        shadeTxt:SetPoint("CENTER")
+        shadeTxt:SetText("-")
+        f.titleBar._shadeIndicator = shadeTxt
+
+        shadeBtn:SetScript("OnEnter", function()
+            shadeTxt:SetTextColor(unpack(KazGUI.Colors.ctrlHover))
+        end)
+        shadeBtn:SetScript("OnLeave", function()
+            shadeTxt:SetTextColor(unpack(KazGUI.Colors.ctrlText))
+        end)
+        shadeBtn:SetScript("OnClick", function()
+            ShadeLog("Shade button clicked")
+            f:ToggleShade()
+        end)
+        f.titleBar._shadeBtn = shadeBtn
+
+        -- Restore shade state on show
+        f:HookScript("OnShow", function()
+            if f._shaded then
+                ShadeLog("OnShow while shaded — re-applying shade height")
+                f:SetHeight(KazGUI.Constants.TITLE_HEIGHT + 2)
+            end
+        end)
+    end
+
     f:Hide()
     return f
 end
