@@ -161,6 +161,32 @@ function KazGUI:CreateFrame(name, width, height, options)
         end)
         f.titleBar._shadeBtn = shadeBtn
 
+        -- Double-click title bar to toggle shade
+        -- Title bar must propagate drag to parent frame
+        f.titleBar:RegisterForDrag("LeftButton")
+        f.titleBar:SetScript("OnDragStart", function() f:StartMoving() end)
+        f.titleBar:SetScript("OnDragStop", function()
+            f:StopMovingOrSizing()
+            if f.SavePosition then f:SavePosition() end
+            if f._savePosition then f._savePosition() end
+        end)
+        -- Track clicks for double-click (only fires on non-drag mouse-up)
+        f.titleBar._lastClickTime = 0
+        f.titleBar._dragging = false
+        f.titleBar:HookScript("OnDragStart", function() f.titleBar._dragging = true end)
+        f.titleBar:HookScript("OnDragStop", function() f.titleBar._dragging = false end)
+        f.titleBar:SetScript("OnMouseUp", function(_, button)
+            if button ~= "LeftButton" or f.titleBar._dragging then return end
+            local now = GetTime()
+            if (now - f.titleBar._lastClickTime) < 0.3 then
+                f.titleBar._lastClickTime = 0
+                ShadeLog("Title bar double-clicked")
+                f:ToggleShade()
+            else
+                f.titleBar._lastClickTime = now
+            end
+        end)
+
         -- Restore shade state on show
         f:HookScript("OnShow", function()
             if f._shaded then
